@@ -1,0 +1,19 @@
+1 - O programa deve ler o arquivo
+2 - após ler o arquivo ele deve criar uma estrutura para manter os dados de cada processo
+    dados de cada processo 
+        numero - inteiro
+        nome - string
+        num_tickets - inteiro
+        tickets - array de inteiro
+        tempo de inicio - time_t
+        tempo fim - time_h
+        
+3 - atualizar as informações de valor dos tickets de cada processo
+4 - sortear um valor para selecionar o processo
+5 - colocar o processo escolhido para rodar
+6 - A cada 2 segundos um novo processo se torna pronto para rodar
+7 - A cada 6 segundos temos o quantum, quando ocorre o quantum o escalonador suspende o processo atualizar
+    soma novamente os tickets de todos os processos, sorteia um valor e seleciona um novo processo para rodar
+
+
+8 - A todos os processos terminarem o programa deve apresentar as informações de tempo de execução de cada processo
