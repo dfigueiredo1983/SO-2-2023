@@ -3,7 +3,8 @@
 #include <string.h>
 #include <unistd.h>
 #include <time.h>
-#include <windows.h> // For linux #include<unistd.h>
+#include<unistd.h>
+// #include <windows.h> // For linux #include<unistd.h>
 
 typedef struct Processo
 {
