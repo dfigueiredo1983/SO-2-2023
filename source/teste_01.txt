@@ -1,7 +1,0 @@
-processa_00 1
-processa_01 3
-processa_02 2
-processa_03 2
-processa_04 1
-processa_05 3
-processa_06 1
