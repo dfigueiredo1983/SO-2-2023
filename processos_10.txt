@@ -1,0 +1,10 @@
+processa_00 2
+processa_01 1
+processa_02 1
+processa_03 3
+processa_04 3
+processa_05 2
+processa_06 3
+processa_07 1
+processa_08 3
+processa_09 3
