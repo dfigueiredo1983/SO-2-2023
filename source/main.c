@@ -1,3 +1,8 @@
+// INTEGRANTES DO GRUPO
+// Daniel do Carmo Figueiredo 160057922
+// Davi Matheus Garcia 160070040
+// Pedro Fernandes 180108069
+
 #include "stdio.h"
 
 #include "escalonador.h"

@@ -114,7 +114,6 @@ bool inserir_lista(int numero, char *nome, int prioridade, int ticket, int statu
 void criar_processo(){
     processo *iterador = cabeca;
     int status;
-    time_t t_inicio;
 
     // printf("\n\nAlterar o status do processo a cada 2 segundos\n");
     while (iterador != NULL)
@@ -129,13 +128,11 @@ void criar_processo(){
 
             if (pid_filho == 0) { /* Filho executando */
                 // printf("\nChild PID is %ld\n", (long) getpid());
-                if (execl("/home/vboxuser/Documents/SO/programas/trabalho/processo", " ", (char *) NULL) < 0){
+                if (execl("/home/vboxuser/Documents/SO-2-2023/source/processo", " ", (char *) NULL) < 0){
                     printf("erro no execl = %d\n", errno);
                 }
             } else { /* Pai executando */
                 iterador->status = 1;
-                time(&t_inicio);
-                iterador->t_inicio = t_inicio;
                 iterador->pid = pid_filho;
                 kill(pid_filho, SIGSTOP);
                 // printf("Processo criado com sucesso. pid: %ld - ppid: %ld\n", (long) pid_filho, (long) getppid());
@@ -146,10 +143,14 @@ void criar_processo(){
     }
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void loteria()
 {
     processo *iterador = cabeca;
     int soma_tickets = 0;
+    time_t t_inicio;
+
 
     while (iterador != NULL) // somando os tickets
     {                        // devemos somar apenas os tickets dos processos em ready
@@ -158,17 +159,11 @@ void loteria()
         iterador = iterador->proximo;
     }
 
-    // printf("\nSoma dos tickets: %d\n", soma_tickets);
-
     if(soma_tickets > 0){
         int universo_tickets[soma_tickets];
 
         for (int i = 0; i < soma_tickets; i++)
             universo_tickets[i] = i;
-
-        // // printf("Antes do embaralhamento: ");
-        // // for (int i = 0; i < soma_tickets; i++)
-        // //     printf("%d - ", universo_tickets[i]);
 
         int aux = 0;
         srand((unsigned)time(NULL));
@@ -181,10 +176,6 @@ void loteria()
             universo_tickets[i] = temp;
         }
 
-        // // printf("Apos o embaralhamento: ");
-        // // for (int i = 0; i < soma_tickets; i++)
-        // //     printf("%d - ", universo_tickets[i]);
-
         iterador = cabeca;
         int j = 0;
         while (iterador != NULL) // distribuindo os valores para os processos com status == 1
@@ -194,20 +185,14 @@ void loteria()
                 for (int i = 0; i < iterador->num_ticket; i++)
                 {
                     iterador->tickets[i] = universo_tickets[j];
-                    // printf("%s, Tickts: %d, Valor ticket: %d, Status: %d\n", iterador->nome, iterador->num_ticket, iterador->tickets[i], iterador->status);
                     j += 1;
                 }
             }
             iterador = iterador->proximo;
         }
 
-        // // for (int i = 0; i < soma_tickets; i++)
-        // //     printf("%d\n", universo_tickets[i]);
-
         int num_sorteado = (int)(rand() % soma_tickets);
-        // printf("Numero sorteado: %d\n", num_sorteado);
 
-        // procurar o processo na lista
         iterador = cabeca;
         while (iterador != NULL)
         {
@@ -217,36 +202,31 @@ void loteria()
                 {
                     if (num_sorteado == iterador->tickets[i])
                     {
-                        // printf("Processo selecionado: %s - status: %d - pid: %d\n", iterador->nome, iterador->status, iterador->pid);
                         selecionado = iterador;
+                        if(selecionado->t_inicio == 0){
+                            time(&t_inicio);
+                            selecionado->t_inicio = t_inicio;
+                        }
                         break;
                     }
                 }
             }
             iterador = iterador->proximo;
         }
-    }else{
-        printf("Não existe processos para serem criados\n");
     }
 }
 
 bool verificar_status(){
     processo *iterador = cabeca;
     bool retorno = true;
-    // printf("\n\n\nVerificar Status\n");
-    while(iterador != NULL){
-        // printf("Processo: %s - Pid: %d - Status: %d\n\n", iterador->nome, iterador->pid, iterador->status);
 
+    while(iterador != NULL){
         if(iterador->status == -1)
             retorno = retorno && true;
         else
             retorno = retorno && false;
         iterador = iterador->proximo;
     }
-    // if(retorno)
-    //     // printf("Todos os processos tem status -1\n\n");
-    // else
-    //     // printf("Algum processo tem status != -1\n\n");
 
     return retorno;
 }
@@ -277,11 +257,12 @@ void matar_zumbie(){
                 printf(" - Processo em execução\n");
             else if(iterador->status == 1)
                 printf(" - Processo aguardando\n");
-            else if(iterador->status == -1)
+            else if(iterador->status == -1){
                 printf(" - Processo encerrado\n");
+                kill(iterador->pid, SIGTERM);
+            }
             else
                 printf("\n");
-
 
         }
         iterador = iterador->proximo;
@@ -292,6 +273,7 @@ void sigalrm_handler(){ // para o processo atual, roda a loteria e executa o pro
     // printf("\n\n\nQuantum. Rodando a loteria + stop/cont\n");
     if(executando != NULL){ // pararando o processo em executando
         kill(executando->pid, SIGSTOP);
+        matar_zumbie();
     }
 
     loteria();
@@ -304,12 +286,9 @@ void sigalrm_handler(){ // para o processo atual, roda a loteria e executa o pro
 
 void escalonador(){
 
-    time_t time_start, time_now, markspan_inicio, markspan_final;
-    time(&time_start);
-    time(&time_now);
+    time_t markspan_inicio, markspan_final;
     time(&markspan_inicio);
 
-    // printf("Cria processo, em: %ld\n", time_now - time_start);
     criar_processo();
     sigalrm_handler();
     signal(SIGALRM, sigalrm_handler);
@@ -321,15 +300,12 @@ void escalonador(){
     }
 
     while(1){
-        //ler a lista e criar os processos a cada 2 segundos
-        time(&time_now);
-        // printf("Cria processo, em: %ld\n", time_now - time_start);
         criar_processo(); // cria processo se ainda não existir
         for(int i = 0; i < 2; i++){
             matar_zumbie(); // deve ser executado dentro do loop com menos de 1 segundo
             sleep(1);
-            // usleep(1000);
         }
+        matar_zumbie();
         if(verificar_status()){
             processo *iterador = cabeca;
             time(&markspan_final);
